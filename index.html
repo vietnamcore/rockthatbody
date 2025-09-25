@@ -14,13 +14,13 @@
       background: black;
       color: white;
       font-family: 'Press Start 2P', cursive;
-      font-size: 60px; /* chữ to */
+      font-size: 100px; /* chữ siêu to */
       text-align: center;
       transition: background 0.2s, color 0.2s;
     }
     @keyframes bounce {
       0%   { transform: scale(1); }
-      30%  { transform: scale(1.6); } /* nhảy mạnh */
+      30%  { transform: scale(1.6); }
       100% { transform: scale(1); }
     }
     .word {
@@ -43,7 +43,7 @@
       "Let","me","see","your","body","rock"
     ];
 
-    // Nhân lên để đủ dài
+    // Nhân nhiều lần để đủ dài
     let words = [];
     for (let repeat = 0; repeat < 45; repeat++) {
       words = words.concat(lyricsBlock);
@@ -68,7 +68,7 @@
       index = (index + 1) % words.length;
     }
 
-    setInterval(showWord, 300); // chạy nhanh hơn
+    setInterval(showWord, 300); // nhanh hơn
   </script>
 </body>
 </html>
