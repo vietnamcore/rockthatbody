@@ -16,14 +16,14 @@
       font-family: 'Press Start 2P', cursive;
       font-size: 64px;
       text-align: center;
-      transition: background 0.3s, color 0.3s;
+      transition: background 0.25s, color 0.25s;
     }
     .word {
-      animation: bounce 0.4s ease;
+      animation: bounce 0.3s ease;
     }
     @keyframes bounce {
       0%   { transform: scale(1); }
-      30%  { transform: scale(1.3); }
+      30%  { transform: scale(1.2); }
       100% { transform: scale(1); }
     }
   </style>
@@ -57,10 +57,10 @@
       // xử lý riêng lần đầu tiên "rock your body"
       if (!specialOnce && word.toLowerCase() === "rock" && words[index+1]==="your" && words[index+2]==="body") {
         specialOnce = true;
-        clearInterval(intervalId); // tạm dừng lyric chính
+        clearInterval(intervalId); // dừng lyric chính
         typeAccumulated(["rock", "your", "body"], 1, () => {
           index += 3; // bỏ qua cụm đặc biệt
-          intervalId = setInterval(showWord, 700); // resume lyric
+          intervalId = setInterval(showWord, 600); // tiếp tục lyric
         });
         return;
       }
@@ -79,20 +79,20 @@
       index = (index + 1) % words.length;
     }
 
-    // Hiệu ứng rock → rock your → rock your body
+    // rock → rock your → rock your body
     function typeAccumulated(arr, i, callback) {
       if (i <= arr.length) {
         let text = arr.slice(0, i).join(" ");
         lyricsDiv.textContent = text;
         lyricsDiv.className = "word";
-        setTimeout(() => typeAccumulated(arr, i + 1, callback), 1000); // nhịp chậm lại
+        setTimeout(() => typeAccumulated(arr, i + 1, callback), 500); // nhanh hơn
       } else {
-        setTimeout(callback, 1200); // chạy lyric tiếp
+        setTimeout(callback, 600); // nghỉ ngắn rồi tiếp
       }
     }
 
     // start lyric
-    intervalId = setInterval(showWord, 700);
+    intervalId = setInterval(showWord, 600);
   </script>
 </body>
 </html>
