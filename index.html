@@ -34,7 +34,7 @@
   <script>
     const lyricsBlock = [
       "I","wanna","dance","in","the","lights",
-      "I","wanna","rock","your","body", // <- chỗ đặc biệt
+      "I","wanna","rock","your","body", // <- đặc biệt
       "I","wanna","go","for","a","ride",
       "Hop","in","the","music","and","rock","your","body","right",
       "Rock","that","body","come","on","rock","that","body",
@@ -54,10 +54,10 @@
       let word = words[index];
 
       // xử lý riêng lần đầu tiên "rock your body"
-      if (!specialOnce && word.toLowerCase() === "rock") {
+      if (!specialOnce && word.toLowerCase() === "rock" && words[index+1]==="your" && words[index+2]==="body") {
         specialOnce = true;
-        typeSpecial(["rock", "your", "body"], 0);
-        index += 3; // bỏ qua 3 chữ sau khi chạy
+        typeAccumulated(["rock", "your", "body"], 1);
+        index += 3; // bỏ qua 3 chữ sau khi chạy xong
         return;
       }
 
@@ -75,17 +75,18 @@
       index = (index + 1) % words.length;
     }
 
-    function typeSpecial(arr, i) {
-      if (i < arr.length) {
-        lyricsDiv.textContent = arr[i];
+    function typeAccumulated(arr, i) {
+      if (i <= arr.length) {
+        let text = arr.slice(0, i).join(" ");
+        lyricsDiv.textContent = text;
         lyricsDiv.className = "word";
-        setTimeout(() => typeSpecial(arr, i + 1), 900); // chậm hơn chút
+        setTimeout(() => typeAccumulated(arr, i + 1), 900); // nhịp chậm hơn
       } else {
         setTimeout(showWord, 1200); // sau khi xong -> tiếp tục lyric
       }
     }
 
-    setInterval(showWord, 700); // nhịp chậm hơn chút
+    setInterval(showWord, 700); // tốc độ bình thường
   </script>
 </body>
 </html>
