@@ -18,13 +18,19 @@
       text-align: center;
       transition: background 0.2s, color 0.2s;
     }
+    #lyrics {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px; /* khoảng cách giữa các dòng */
+    }
     .word {
       animation: bounce 0.25s ease;
     }
     @keyframes bounce {
-      0%   { transform: scale(1); }
-      40%  { transform: scale(1.15); }
-      100% { transform: scale(1); }
+      0%   { transform: scale(1); opacity: 0.6; }
+      40%  { transform: scale(1.2); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
     }
   </style>
 </head>
@@ -60,13 +66,12 @@
         clearInterval(intervalId); // dừng lyric chính
         typeAccumulated(["rock", "your", "body"], 1, () => {
           index += 3; // bỏ qua cụm đặc biệt
-          intervalId = setInterval(showWord, 400); // tiếp tục lyric nhanh hơn
+          intervalId = setInterval(showWord, 350); // lyric chính chạy nhanh hơn
         });
         return;
       }
 
-      lyricsDiv.textContent = word;
-      lyricsDiv.className = "word";
+      lyricsDiv.innerHTML = `<div class="word">${word}</div>`;
 
       if (word.toLowerCase() === "lights") {
         document.body.style.background = "white";
@@ -79,20 +84,23 @@
       index = (index + 1) % words.length;
     }
 
-    // rock → rock your → rock your body (nhanh hơn, mượt hơn)
+    // rock → rock + your → rock + your + body (mỗi dòng riêng, không chồng)
     function typeAccumulated(arr, i, callback) {
       if (i <= arr.length) {
-        let text = arr.slice(0, i).join(" ");
-        lyricsDiv.textContent = text;
-        lyricsDiv.className = "word";
-        setTimeout(() => typeAccumulated(arr, i + 1, callback), 300); // nhanh hơn
+        let html = arr.map((w, idx) => {
+          if (idx < i) return `<div class="word">${arr.slice(0, idx+1).join(" ")}</div>`;
+          return "";
+        }).join("");
+        lyricsDiv.innerHTML = html;
+
+        setTimeout(() => typeAccumulated(arr, i + 1, callback), 280);
       } else {
-        setTimeout(callback, 400); // nghỉ ngắn rồi tiếp
+        setTimeout(callback, 300);
       }
     }
 
     // start lyric
-    intervalId = setInterval(showWord, 400);
+    intervalId = setInterval(showWord, 350);
   </script>
 </body>
 </html>
