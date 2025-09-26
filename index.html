@@ -14,17 +14,17 @@
       background: black;
       color: white;
       font-family: 'Press Start 2P', cursive;
-      font-size: 100px; /* chữ siêu to */
+      font-size: 64px;
       text-align: center;
-      transition: background 0.2s, color 0.2s;
+      transition: background 0.3s, color 0.3s;
+    }
+    .word {
+      animation: bounce 0.4s ease;
     }
     @keyframes bounce {
       0%   { transform: scale(1); }
-      30%  { transform: scale(1.6); }
+      30%  { transform: scale(1.3); }
       100% { transform: scale(1); }
-    }
-    .word {
-      animation: bounce 0.3s ease;
     }
   </style>
 </head>
@@ -33,27 +33,34 @@
 
   <script>
     const lyricsBlock = [
-      "I","wanna","da,","I","wanna","dance","in","the","lights",
-      "I","wanna","ro-,","I","wanna","rock","your","body",
-      "I","wanna","go,","I","wanna","go","for","a","ride",
+      "I","wanna","dance","in","the","lights",
+      "I","wanna","rock","your","body", // <- chỗ đặc biệt
+      "I","wanna","go","for","a","ride",
       "Hop","in","the","music","and","rock","your","body","right",
-      "Rock","that","body,","come","on,","come","on,","rock","that","body",
-      "Rock","that","body,","come","on,","come","on,","rock","that","body",
-      "Rock","that","body,","come","on,","come","on,","rock","that","body",
+      "Rock","that","body","come","on","rock","that","body",
       "Let","me","see","your","body","rock"
     ];
 
-    // Nhân nhiều lần để đủ dài
     let words = [];
-    for (let repeat = 0; repeat < 45; repeat++) {
+    for (let repeat = 0; repeat < 20; repeat++) {
       words = words.concat(lyricsBlock);
     }
 
     const lyricsDiv = document.getElementById("lyrics");
     let index = 0;
+    let specialOnce = false;
 
     function showWord() {
-      const word = words[index];
+      let word = words[index];
+
+      // xử lý riêng lần đầu tiên "rock your body"
+      if (!specialOnce && word.toLowerCase() === "rock") {
+        specialOnce = true;
+        typeSpecial(["rock", "your", "body"], 0);
+        index += 3; // bỏ qua 3 chữ sau khi chạy
+        return;
+      }
+
       lyricsDiv.textContent = word;
       lyricsDiv.className = "word";
 
@@ -68,7 +75,17 @@
       index = (index + 1) % words.length;
     }
 
-    setInterval(showWord, 300); // nhanh hơn
+    function typeSpecial(arr, i) {
+      if (i < arr.length) {
+        lyricsDiv.textContent = arr[i];
+        lyricsDiv.className = "word";
+        setTimeout(() => typeSpecial(arr, i + 1), 900); // chậm hơn chút
+      } else {
+        setTimeout(showWord, 1200); // sau khi xong -> tiếp tục lyric
+      }
+    }
+
+    setInterval(showWord, 700); // nhịp chậm hơn chút
   </script>
 </body>
 </html>
