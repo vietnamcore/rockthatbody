@@ -1,106 +1,176 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Rock That Body Lyrics</title>
+  <meta charset="utf-8" />
+  <title>Rock That Body - Lyric</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
   <style>
-    body {
-      margin: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      background: black;
-      color: white;
-      font-family: 'Press Start 2P', cursive;
-      font-size: 72px; /* chữ to hơn */
-      text-align: center;
-      transition: background 0.2s, color 0.2s;
+    :root{
+      --bg-black:#000;
+      --bg-white:#fff;
+      --text-white:#fff;
+      --text-black:#000;
     }
-    #lyrics {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 20px; /* khoảng cách giữa các dòng */
+
+    html,body{
+      height:100%;
+      margin:0;
+      background:var(--bg-black);
+      color:var(--text-white);
+      font-family: 'Press Start 2P', monospace;
     }
-    .word {
-      animation: bounce 0.25s ease;
+
+    /* Center full screen */
+    .stage{
+      height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
     }
-    @keyframes bounce {
-      0%   { transform: scale(1); opacity: 0.6; }
-      40%  { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
+
+    /* The single line word element (always one line) */
+    #word {
+      font-size: 72px;            /* chỉnh lớn nhỏ ở đây */
+      line-height: 1;
+      text-align:center;
+      white-space: nowrap;        /* buộc trên 1 hàng */
+      padding: 10px 20px;
+      transition: color 0.18s linear, transform 0.12s linear;
+      will-change: transform, opacity;
+      -webkit-font-smoothing: none;
+    }
+
+    /* nhẹ pop / nẩy */
+    .pop {
+      transform: scale(1.18);
+      transition: transform 0.28s cubic-bezier(.2,.8,.25,1);
+    }
+
+    /* fade in subtle */
+    .fade {
+      opacity: 0;
+      animation: fadeIn .22s forwards;
+    }
+    @keyframes fadeIn {
+      to { opacity: 1; }
     }
   </style>
 </head>
 <body>
-  <div id="lyrics">Loading...</div>
+  <div class="stage">
+    <div id="word"> </div>
+  </div>
 
   <script>
+    // ===== lyrics chunk (giữ đúng nội dung bạn yêu cầu) =====
     const lyricsBlock = [
-      "I","wanna","dance","in","the","lights",
-      "I","wanna","rock","your","body", // đặc biệt
-      "I","wanna","go","for","a","ride",
+      "I","wanna","da,","I","wanna","dance","in","the","lights",
+      "I","wanna","ro-,","I","wanna","rock","your","body",
+      "I","wanna","go,","I","wanna","go","for","a","ride",
       "Hop","in","the","music","and","rock","your","body","right",
-      "Rock","that","body","come","on","rock","that","body",
+      "Rock","that","body,","come","on,","come","on,","rock","that","body",
       "Let","me","see","your","body","rock"
     ];
 
+    // optional: nhân bản để có nhiều từ chạy (bạn có thể giảm nếu muốn ngắn)
     let words = [];
-    for (let repeat = 0; repeat < 20; repeat++) {
-      words = words.concat(lyricsBlock);
+    for (let r=0; r<18; r++){ words = words.concat(lyricsBlock); }
+
+    const el = document.getElementById('word');
+
+    // thời gian (ms) - bạn dễ chỉnh để phù hợp nhịp
+    const MAIN_MS = 350;     // tempo chữ bình thường
+    const ACC_STEP_MS = 300; // tốc độ từng bước của "rock"->"rock your"->"rock your body"
+    const ACC_PAUSE_MS = 300; // pause nhỏ sau khúc tích lũy
+
+    let idx = 0;
+    let intervalId = null;
+    let specialDone = false; // chỉ chạy khúc tích lũy 1 lần
+
+    // helper hiển thị text với pop + fade
+    function showText(text){
+      el.classList.remove('pop','fade');
+      // restart transition
+      void el.offsetWidth;
+      el.textContent = text;
+      el.classList.add('fade','pop');
+      // remove pop after short time so next pop re-triggers
+      setTimeout(()=> el.classList.remove('pop'), 280);
     }
 
-    const lyricsDiv = document.getElementById("lyrics");
-    let index = 0;
-    let intervalId;
-    let specialOnce = false;
+    function normalize(s){
+      return String(s).replace(/[^\w]/g,'').toLowerCase();
+    }
 
-    function showWord() {
-      let word = words[index];
+    // chức năng hiển thị tích lũy trên một hàng (không chồng)
+    function accumulatedLine(parts, step = 1, doneCallback){
+      if (step <= parts.length){
+        const text = parts.slice(0, step).join(' ');
+        showText(text);
+        setTimeout(()=> accumulatedLine(parts, step + 1, doneCallback), ACC_STEP_MS);
+      } else {
+        // xong 3 bước
+        setTimeout(()=> { if(doneCallback) doneCallback(); }, ACC_PAUSE_MS);
+      }
+    }
 
-      // xử lý riêng lần đầu tiên "rock your body"
-      if (!specialOnce && word.toLowerCase() === "rock" && words[index+1]==="your" && words[index+2]==="body") {
-        specialOnce = true;
-        clearInterval(intervalId); // dừng lyric chính
-        typeAccumulated(["rock", "your", "body"], 1, () => {
-          index += 3; // bỏ qua cụm đặc biệt
-          intervalId = setInterval(showWord, 350); // lyric chính chạy nhanh hơn
+    function tick(){
+      // bảo đảm words còn phần tử
+      if (!words.length) return;
+
+      const w = words[idx];
+
+      // detect special sequence "rock your body" (lần đầu xuất hiện)
+      if (!specialDone
+          && normalize(w) === 'rock'
+          && normalize(words[(idx+1) % words.length]) === 'your'
+          && normalize(words[(idx+2) % words.length]) === 'body') {
+
+        specialDone = true;
+        clearInterval(intervalId); // pause main loop
+
+        // chạy tích lũy trên 1 hàng
+        accumulatedLine(['rock','your','body'], 1, ()=> {
+          // sau khi xong, nhảy qua 3 từ đó
+          idx = (idx + 3) % words.length;
+          // resume loop
+          intervalId = setInterval(tick, MAIN_MS);
         });
+
         return;
       }
 
-      lyricsDiv.innerHTML = `<div class="word">${word}</div>`;
+      // normal display
+      showText(w);
 
-      if (word.toLowerCase() === "lights") {
-        document.body.style.background = "white";
-        lyricsDiv.style.color = "black";
+      // invert background when word is lights
+      if (normalize(w) === 'lights'){
+        document.body.style.background = 'white';
+        el.style.color = 'black';
       } else {
-        document.body.style.background = "black";
-        lyricsDiv.style.color = "white";
+        document.body.style.background = 'black';
+        el.style.color = 'white';
       }
 
-      index = (index + 1) % words.length;
+      idx = (idx + 1) % words.length;
     }
 
-    // rock → rock + your → rock + your + body (mỗi dòng riêng, không chồng)
-    function typeAccumulated(arr, i, callback) {
-      if (i <= arr.length) {
-        let html = arr.map((w, idx) => {
-          if (idx < i) return `<div class="word">${arr.slice(0, idx+1).join(" ")}</div>`;
-          return "";
-        }).join("");
-        lyricsDiv.innerHTML = html;
+    // start immediately and set interval
+    tick();
+    intervalId = setInterval(tick, MAIN_MS);
 
-        setTimeout(() => typeAccumulated(arr, i + 1, callback), 280);
+    // optional: pause/resume on click
+    let running = true;
+    document.body.addEventListener('click', ()=>{
+      if (running){
+        clearInterval(intervalId);
+        running = false;
       } else {
-        setTimeout(callback, 300);
+        intervalId = setInterval(tick, MAIN_MS);
+        running = true;
       }
-    }
-
-    // start lyric
-    intervalId = setInterval(showWord, 350);
+    });
   </script>
 </body>
 </html>
